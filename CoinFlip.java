@@ -46,9 +46,12 @@ class CoinFlip implements Runnable
 
     Thread[] threads = new Thread[num_threads];
 
+    long time = 0;
+
     for ( int i=0; i<num_threads; i++ )
     {
       threads[i] = new Thread ( new CoinFlip() );
+      time = System.currentTimeMillis();
       threads[i].start();
     }
 
@@ -66,5 +69,6 @@ class CoinFlip implements Runnable
       }
     }
     System.out.printf("%d heads in %s coin tosses\n", heads, args[1]);
+    System.out.printf("Elapsed time: %dms\n", System.currentTimeMillis() - time);
   }
 }
