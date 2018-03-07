@@ -1,12 +1,12 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-//    $Id: SealedDES.java,v 1.1 2008/09/10 20:21:47 randal Exp $
+//    $Id: BruteForceDES.java,v 1.1 2008/09/10 20:21:47 randal Exp $
 //
 //    Randal C. Burns
 //    Department of Computer Science
 //    Johns Hopkins University
 //
-//    $Source: /home/randal/repository/public_html/420/src/SealedDES.java,v $
+//    $Source: /home/randal/repository/public_html/420/src/BruteForceDES.java,v $
 //    $Date: 2008/09/10 20:21:47 $        
 //    $Revision: 1.1 $
 //
@@ -14,9 +14,9 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-//  class: SealedDES
+//  class: BruteForceDES
 //
-//  SealedDES encapsulates the DES encryption and decryption of Strings 
+//  BruteForceDES encapsulates the DES encryption and decryption of Strings 
 //  into SealedObjects.  It represesnts keys as integers (for simplicity).
 //  
 //  The main function gives and example of how to:
@@ -43,7 +43,7 @@ import java.util.Random;
 import java.io.PrintStream;
 
 
-class SealedDES
+class BruteForceDES
 {
     // Cipher for the class
     Cipher des_cipher;
@@ -56,7 +56,7 @@ class SealedDES
     byte[] deskeyOUT = new byte[8];
 
     // Constructor: initialize the cipher
-    public SealedDES ()
+    public BruteForceDES ()
     {
         try
         {
@@ -164,7 +164,7 @@ class SealedDES
     {
         if ( 2 != args.length )
         {
-            System.out.println ("Usage: java SealedDES key_size_in_bits filename");
+            System.out.println ("Usage: java BruteForceDES key_size_in_bits filename");
             return;
         }
 
@@ -178,7 +178,7 @@ class SealedDES
         maxkey = maxkey >>> (64 - keybits);
 
         // Create a simple cipher
-        SealedDES enccipher = new SealedDES ();
+        BruteForceDES enccipher = new BruteForceDES ();
 
         // Get a number between 0 and 2^64 - 1
         Random generator = new Random ();
@@ -215,7 +215,7 @@ class SealedDES
         runstart = System.currentTimeMillis();
 
         // Create a simple cipher
-        SealedDES deccipher = new SealedDES ();
+        BruteForceDES deccipher = new BruteForceDES ();
 
         // Search for the right key
         for ( long i = 0; i < maxkey; i++ )
@@ -252,7 +252,7 @@ class SealedDES
 //
 //  Revsion History 
 //    
-//  $Log: SealedDES.java,v $
+//  $Log: BruteForceDES.java,v $
 //  Revision 1.1  2008/09/10 20:21:47  randal
 //  Initial checkin.
 //
