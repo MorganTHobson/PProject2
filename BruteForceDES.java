@@ -43,8 +43,11 @@ import java.util.Random;
 import java.io.PrintStream;
 
 
-class BruteForceDES
+class BruteForceDES implements Runnable
 {
+    // Thread id
+    int thread_id;
+
     // Cipher for the class
     Cipher des_cipher;
 
@@ -55,8 +58,13 @@ class BruteForceDES
     byte[] deskeyIN = new byte[8];
     byte[] deskeyOUT = new byte[8];
 
+    static String checkstr;
+    static long countdown;
+    static long runstart;
+    static SealedObject sldObj;
+ 
     // Constructor: initialize the cipher
-    public BruteForceDES ()
+    public BruteForceDES (int id)
     {
         try
         {
@@ -67,6 +75,7 @@ class BruteForceDES
             System.out.println("Failed to create cipher.  Exception: " + e.toString() +
                     " Message: " + e.getMessage()) ;
         }
+        thread_id = id;
     }
 
     // Decrypt the SealedObject
@@ -158,13 +167,48 @@ class BruteForceDES
         }
     }
 
+    public void run()
+    {
+        long i;
+        // Search for the right key
+        while ( true )
+        {
+            synchronized(BruteForceDES.class)
+            {
+                i = countdown--;
+            }
+
+            if (i <= 0) {return;}
+
+            // Set the key and decipher the object
+            setKey ( i );
+            String decryptstr = decrypt ( sldObj );
+
+            // Does the object contain the known plaintext
+            if (( decryptstr != null ) && ( decryptstr.contains(checkstr)))
+            {
+                //  Remote printlns if running for time.
+                //p.printf("Found decrypt key %016x producing message: %s\n", i , decryptstr);
+                System.out.println (  "Found decrypt key " + i + " producing message: " + decryptstr );
+            }
+
+            // Update progress every once in awhile.
+            //  Remote printlns if running for time.
+            if ( i % 100000 == 0 )
+            {
+                long elapsed = System.currentTimeMillis() - runstart;
+                System.out.println ( "Thread " + thread_id + " Searched key number " + i 
+                                      + " at " + elapsed + " milliseconds.");
+            }
+        }
+    }
 
     // Program demonstrating how to create a random key and then search for the key value.
     public static void main ( String[] args ) throws IOException
     {
-        if ( 2 != args.length )
+        if ( 3 != args.length )
         {
-            System.out.println ("Usage: java BruteForceDES key_size_in_bits filename");
+            System.out.println ("Usage: java BruteForceDES num_threads key_size_in_bits filename");
             return;
         }
 
@@ -172,13 +216,17 @@ class BruteForceDES
         PrintStream p = new PrintStream(System.out);
 
         // Get the argument
-        long keybits = Long.parseLong ( args[0] );
+        int num_threads = Integer.parseInt ( args[0] );
+        long keybits = Long.parseLong ( args[1] );
 
         long maxkey = ~(0L);
         maxkey = maxkey >>> (64 - keybits);
 
+        // Create countdown for threads
+        countdown = maxkey;
+
         // Create a simple cipher
-        BruteForceDES enccipher = new BruteForceDES ();
+        BruteForceDES enccipher = new BruteForceDES (0);
 
         // Get a number between 0 and 2^64 - 1
         Random generator = new Random ();
@@ -191,7 +239,7 @@ class BruteForceDES
         enccipher.setKey ( key );
 
         // Get the filename
-        String filename = args[1];
+        String filename = args[2];
         // Read in the file to encrypt
         File inputFile = new File(filename);
 
@@ -202,44 +250,41 @@ class BruteForceDES
         }
         byte[] encoded = Files.readAllBytes(Paths.get(filename));
 
-        String plainstr = new String(encoded, StandardCharsets.US_ASCII);
+        checkstr = new String(encoded, StandardCharsets.US_ASCII);
 
         // Encrypt
-        SealedObject sldObj = enccipher.encrypt ( plainstr );
+        sldObj = enccipher.encrypt ( checkstr );
 
         // Here ends the set-up.  Pretending like we know nothing except sldObj,
         // discover what key was used to encrypt the message.
 
+
+
+        Thread[] threads = new Thread[num_threads];
+
         // Get and store the current time -- for timing
-        long runstart;
         runstart = System.currentTimeMillis();
 
-        // Create a simple cipher
-        BruteForceDES deccipher = new BruteForceDES ();
-
-        // Search for the right key
-        for ( long i = 0; i < maxkey; i++ )
+        for ( int i=0; i<num_threads; i++ )
         {
-            // Set the key and decipher the object
-            deccipher.setKey ( i );
-            String decryptstr = deccipher.decrypt ( sldObj );
+            threads[i] = new Thread ( new BruteForceDES(i) );
+            threads[i].start();
+        }
 
-            // Does the object contain the known plaintext
-            if (( decryptstr != null ) && ( decryptstr.contains(plainstr)))
+        for ( int i=0; i<num_threads; i++ )
+        {
+            try
             {
-                //  Remote printlns if running for time.
-                //p.printf("Found decrypt key %016x producing message: %s\n", i , decryptstr);
-                System.out.println (  "Found decrypt key " + i + " producing message: " + decryptstr );
+                threads[i].join();
             }
-
-            // Update progress every once in awhile.
-            //  Remote printlns if running for time.
-            if ( i % 100000 == 0 )
+            catch (InterruptedException e)
             {
-                long elapsed = System.currentTimeMillis() - runstart;
-                System.out.println ( "Searched key number " + i + " at " + elapsed + " milliseconds.");
+                System.out.println("Thread interrupted.  Exception: " + e.toString() +
+                                   " Message: " + e.getMessage()) ;
+                return;
             }
         }
+
 
         // Output search time
         long elapsed = System.currentTimeMillis() - runstart;

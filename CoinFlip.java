@@ -46,12 +46,11 @@ class CoinFlip implements Runnable
 
     Thread[] threads = new Thread[num_threads];
 
-    long time = 0;
+    long time = System.currentTimeMillis();
 
     for ( int i=0; i<num_threads; i++ )
     {
       threads[i] = new Thread ( new CoinFlip() );
-      time = System.currentTimeMillis();
       threads[i].start();
     }
 
