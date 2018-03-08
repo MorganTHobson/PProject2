@@ -112,7 +112,9 @@ class BruteForceDES implements Runnable
 
     for ( int i=0; i<num_threads; i++ )
     {
-      threads[i] = new Thread ( new BruteForceDES(runstart, i*maxkey, (i+1)*maxkey) );
+      long key_band_start = i*maxkey/num_threads;
+      long key_band_end = (i+1)*maxkey/num_threads;
+      threads[i] = new Thread ( new BruteForceDES(runstart, key_band_start, key_band_end) );
       threads[i].start();
     }
 
