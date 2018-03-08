@@ -11,12 +11,12 @@ y8 = []
 y16 = []
 y32 = []
 
-y = [np.median(y1),
-     np.median(y2),
-     np.median(y4),
-     np.median(y8),
-     np.median(y16),
-     np.median(y32)]
+y = [np.median(y1)/np.median(y1),
+     np.median(y1)/(np.median(y2)*2),
+     np.median(y1)/(np.median(y4)*4),
+     np.median(y1)/(np.median(y8)*8),
+     np.median(y1)/(np.median(y16)*16),
+     np.median(y1)/(np.median(y32)*32)]
 
 
 plt.plot(x,y)
