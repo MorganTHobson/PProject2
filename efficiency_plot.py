@@ -21,8 +21,10 @@ y = [np.median(y1),
 
 plt.plot(x,y)
 
-plt.title('CoinFlip Speedup')
-plt.xlabel('#Threads')
-plt.ylabel('Speedup [T(1)/T(n)]')
+plt.title('CoinFlip Efficiency')
+plt.xlabel('#Threads (n)')
+plt.ylabel('Speedup [T(1)/nT(n)]')
+
+plt.xscale('log')
 
 plt.show()
