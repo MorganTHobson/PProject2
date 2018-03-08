@@ -18,14 +18,15 @@ class CoinFlip implements Runnable
 
   public void run()
   {
-    thread_heads[thread_id] = 0;
+    int heads = 0;;
     for (int i = 0; i < num_flips; i++)
     {
       if (rand.nextBoolean())
       {
-        thread_heads[thread_id]++;
+        heads++;
       }
     } 
+    thread_heads[thread_id] = heads;
   }
 
   public static void main (String[] args)
