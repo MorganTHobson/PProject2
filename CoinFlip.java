@@ -6,13 +6,14 @@ class CoinFlip implements Runnable
   private int thread_id;
   private int num_flips;
 
-  private static Integer[] thread_heads;
+  private Integer[] thread_heads;
 
-  public CoinFlip(int id, int flips)
+  public CoinFlip(int id, int flips, Integer[] heads)
   {
     rand = new Random();
     thread_id = id;
     num_flips = flips;
+    thread_heads = heads;
   }
 
   public void run()
@@ -40,13 +41,13 @@ class CoinFlip implements Runnable
     int total_flips = Integer.parseInt(args[1]);
 
     Thread[] threads = new Thread[num_threads];
-    thread_heads = new Integer[num_threads];
+    Integer[] head_count = new Integer[num_threads];
 
     long time = System.currentTimeMillis();
 
     for ( int i=0; i<num_threads; i++ )
     {
-      threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads) );
+      threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads, head_count) );
       threads[i].start();
     }
 
@@ -57,11 +58,11 @@ class CoinFlip implements Runnable
       try
       {
         threads[i].join();
-        heads += thread_heads[i];
+        heads += head_count[i];
       }
       catch (InterruptedException e)
       {
-         System.out.println("Thread interrupted.  Exception: " + e.toString() +
+         System.err.println("Thread interrupted.  Exception: " + e.toString() +
                            " Message: " + e.getMessage()) ;
         return;
       }
