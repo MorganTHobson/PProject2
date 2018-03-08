@@ -50,17 +50,7 @@ class CoinFlip implements Runnable
     // Generate threads
     for ( int i=0; i<num_threads; i++ )
     {
-      if (i == 0)
-      {
-        // Offload leftover coin flips onto first thread
-        // if num_threads doesn't divide total_flips
-        threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads +
-                                               total_flips%num_threads, head_count) );
-      }
-      else
-      {
-        threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads, head_count) );
-      }
+      threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads, head_count) );
       threads[i].start();
     }
 
