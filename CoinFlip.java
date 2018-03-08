@@ -41,13 +41,26 @@ class CoinFlip implements Runnable
     int total_flips = Integer.parseInt(args[1]);
 
     Thread[] threads = new Thread[num_threads];
+
+    // Array for tracking head count in each thread
     Integer[] head_count = new Integer[num_threads];
 
     long time = System.currentTimeMillis();
 
+    // Generate threads
     for ( int i=0; i<num_threads; i++ )
     {
-      threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads, head_count) );
+      if (i == 0)
+      {
+        // Offload leftover coin flips onto first thread
+        // if num_threads doesn't divide total_flips
+        threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads +
+                                               total_flips%num_threads, head_count) );
+      }
+      else
+      {
+        threads[i] = new Thread ( new CoinFlip(i, total_flips/num_threads, head_count) );
+      }
       threads[i].start();
     }
 

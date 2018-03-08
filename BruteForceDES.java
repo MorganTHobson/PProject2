@@ -14,8 +14,8 @@ import java.io.PrintStream;
 class BruteForceDES implements Runnable
 {
 
-  private static SealedObject sldObj;
-  private static String plainstr;
+  private SealedObject sldObj;
+  private String plainstr;
 
   private long time_start;
   private SealedDES decipher;
@@ -23,13 +23,15 @@ class BruteForceDES implements Runnable
   private long key_end;
   private int thread_id;
 
-  public BruteForceDES(long time, long start, long end, int id)
+  public BruteForceDES(long time, long start, long end, int id, SealedObject obj, String str)
   {
     decipher = new SealedDES();
     time_start = time;
     key_start = start;
     key_end = end;
     thread_id = id;
+    sldObj = obj;
+    plainstr = str;
   }
 
   public void run()
@@ -45,15 +47,15 @@ class BruteForceDES implements Runnable
       if (( decryptstr != null ) && ( decryptstr.contains(plainstr)))
       {
         //  Remote printlns if running for time.
-        System.out.println (  "DecryptedString: " + decryptstr );
+        System.out.println (  "Decrypted String: " + decryptstr );
       }
 
       // Update progress every once in awhile.
-      //  Remote printlns if running for time.
+      // Remote printlns if running for time.
       if ( i % 100000 == 0 )
       {
         long elapsed = System.currentTimeMillis() - time_start;
-        System.out.println ( "Thread " + thread_id + " Searched key number " + i +
+        System.err.println ( "Thread " + thread_id + " Searched key number " + i +
                              " at " + elapsed + " milliseconds.");
       }
     }
@@ -66,9 +68,6 @@ class BruteForceDES implements Runnable
         System.out.println ("Usage: java BruteForceDES #threads key_size_in_bits filename");
         return;
     }
-
-    // create object to printf to the console
-    PrintStream p = new PrintStream(System.out);
 
     // Get the argument
     long keybits = Long.parseLong ( args[1] );
@@ -102,10 +101,10 @@ class BruteForceDES implements Runnable
     }
     byte[] encoded = Files.readAllBytes(Paths.get(filename));
 
-    plainstr = new String(encoded, StandardCharsets.US_ASCII);
+    String checkstr = new String(encoded, StandardCharsets.US_ASCII);
 
     // Encrypt
-    sldObj = enccipher.encrypt ( plainstr );
+    SealedObject sealed = enccipher.encrypt ( checkstr );
     
     // Get and store the current time -- for timing
     long runstart;
@@ -115,13 +114,16 @@ class BruteForceDES implements Runnable
 
     for ( int i=0; i<num_threads; i++ )
     {
+      // Calculate key range to check for each thread
       long key_band_start = i*maxkey/num_threads;
       long key_band_end = (i+1)*maxkey/num_threads;
-      threads[i] = new Thread ( new BruteForceDES(runstart, key_band_start, key_band_end, i) );
+
+      threads[i] = new Thread ( new BruteForceDES(runstart, key_band_start, key_band_end, i,
+                                sealed, checkstr) );
       threads[i].start();
     }
 
-
+    // Join threads
     for ( int i=0; i<num_threads; i++ )
     {
       try
