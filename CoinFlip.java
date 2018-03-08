@@ -18,7 +18,7 @@ class CoinFlip implements Runnable
 
   public void run()
   {
-    int heads = 0;;
+    int heads = 0;
     for (int i = 0; i < num_flips; i++)
     {
       if (rand.nextBoolean())
